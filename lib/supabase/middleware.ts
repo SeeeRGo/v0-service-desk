@@ -29,15 +29,27 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Allow access to auth pages and home
-  if (request.nextUrl.pathname === "/" || request.nextUrl.pathname.startsWith("/auth")) {
+  const publicRoutes = ["/auth/login", "/auth/sign-up", "/auth/check-email"]
+  const isPublicRoute = publicRoutes.some((route) => request.nextUrl.pathname.startsWith(route))
+
+  if (isPublicRoute) {
+    // If user is logged in and trying to access auth pages, redirect to dashboard
+    if (user && request.nextUrl.pathname !== "/auth/check-email") {
+      const url = request.nextUrl.clone()
+      url.pathname = "/dashboard"
+      return NextResponse.redirect(url)
+    }
     return supabaseResponse
   }
 
-  // Redirect to login if not authenticated
+  if (request.nextUrl.pathname === "/") {
+    return supabaseResponse
+  }
+
   if (!user) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
+    url.searchParams.set("redirect", request.nextUrl.pathname)
     return NextResponse.redirect(url)
   }
 
