@@ -23,10 +23,6 @@ export default function CreateTicketForm() {
     category_id: "",
     title: "",
     description: "",
-    client_name: "",
-    client_email: "",
-    client_phone: "",
-    client_company: "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,14 +42,10 @@ export default function CreateTicketForm() {
           title: formData.title,
           description: formData.description,
           priority: formData.priority,
-          category_id: formData.category_id,
-          status: "new",
+          category_id: formData.category_id || null,
+          status: "active",
           urgency: "medium",
           impact: "medium",
-          client_name: formData.client_name,
-          client_email: formData.client_email,
-          client_phone: formData.client_phone,
-          client_company: formData.client_company,
         }),
       })
 
@@ -99,7 +91,7 @@ export default function CreateTicketForm() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="incident">Инцидент</SelectItem>
-                <SelectItem value="service_request">Запрос на обслуживание</SelectItem>
+                <SelectItem value="request">Запрос на обслуживание</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -125,11 +117,10 @@ export default function CreateTicketForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="category">Категория *</Label>
+          <Label htmlFor="category">Категория</Label>
           <Select
             value={formData.category_id}
             onValueChange={(value) => setFormData({ ...formData, category_id: value })}
-            required
           >
             <SelectTrigger id="category">
               <SelectValue placeholder="Выберите категорию" />
@@ -165,52 +156,6 @@ export default function CreateTicketForm() {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             required
           />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="clientName">ФИО клиента *</Label>
-            <Input
-              id="clientName"
-              value={formData.client_name}
-              onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clientEmail">Email *</Label>
-            <Input
-              id="clientEmail"
-              type="email"
-              value={formData.client_email}
-              onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="clientPhone">Телефон</Label>
-            <Input
-              id="clientPhone"
-              type="tel"
-              placeholder="+7 (900) 123-45-67"
-              value={formData.client_phone}
-              onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="clientCompany">Компания *</Label>
-            <Input
-              id="clientCompany"
-              value={formData.client_company}
-              onChange={(e) => setFormData({ ...formData, client_company: e.target.value })}
-              required
-            />
-          </div>
         </div>
 
         <div className="space-y-2">
