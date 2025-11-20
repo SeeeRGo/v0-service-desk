@@ -39,23 +39,44 @@ export default function AppSidebar() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const supabase = createClient()
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser()
+      try {
+        console.log("[v0] Fetching user data...")
+        const supabase = createClient()
+        const {
+          data: { user: authUser },
+          error: authError,
+        } = await supabase.auth.getUser()
 
-      if (authUser) {
-        const { data: profile } = await supabase
-          .from("users")
-          .select("full_name, email, role")
-          .eq("id", authUser.id)
-          .single()
+        console.log("[v0] Auth user:", authUser)
+        console.log("[v0] Auth error:", authError)
 
-        if (profile) {
-          setUser(profile)
+        if (authUser) {
+          const { data: profile, error: profileError } = await supabase
+            .from("users")
+            .select("full_name, email, role")
+            .eq("id", authUser.id)
+            .single()
+
+          console.log("[v0] Profile data:", profile)
+          console.log("[v0] Profile error:", profileError)
+
+          if (profile) {
+            setUser(profile)
+          } else {
+            // Fallback to auth user data
+            console.log("[v0] Using fallback user data from auth")
+            setUser({
+              full_name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "Пользователь",
+              email: authUser.email || "",
+              role: authUser.user_metadata?.role || "client",
+            })
+          }
         }
+      } catch (error) {
+        console.error("[v0] Error fetching user:", error)
+      } finally {
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
 
     fetchUser()
@@ -181,7 +202,14 @@ export default function AppSidebar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : null}
+          ) : (
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
+                <span className="text-sm">?</span>
+              </div>
+              <div>Загрузка...</div>
+            </div>
+          )}
         </div>
       </div>
     </aside>
