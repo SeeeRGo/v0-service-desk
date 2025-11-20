@@ -1,9 +1,20 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Ticket, BarChart3, BookOpen, Settings, Users } from "lucide-react"
+import { LayoutDashboard, Ticket, BarChart3, BookOpen, Settings, Users, LogOut } from "lucide-react"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const navigation = [
   { name: "Панель управления", href: "/dashboard", icon: LayoutDashboard },
@@ -14,8 +25,66 @@ const navigation = [
   { name: "Настройки", href: "/settings", icon: Settings },
 ]
 
+interface UserProfile {
+  full_name: string
+  email: string
+  role: string
+}
+
 export default function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient()
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser()
+
+      if (authUser) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("full_name, email, role")
+          .eq("id", authUser.id)
+          .single()
+
+        if (profile) {
+          setUser(profile)
+        }
+      }
+      setIsLoading(false)
+    }
+
+    fetchUser()
+  }, [])
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/auth/login")
+  }
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  const formatRole = (role: string) => {
+    const roleMap: Record<string, string> = {
+      admin: "Администратор",
+      supervisor: "Супервизор",
+      engineer: "Инженер",
+      client: "Клиент",
+    }
+    return roleMap[role] || role
+  }
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r">
@@ -58,15 +127,48 @@ export default function AppSidebar() {
 
         {/* User info */}
         <div className="p-4 border-t">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-              <span className="text-sm font-semibold">ЕВ</span>
+          {isLoading ? (
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-accent animate-pulse" />
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="h-4 bg-accent rounded animate-pulse" />
+                <div className="h-3 bg-accent rounded w-2/3 animate-pulse" />
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Елена Волкова</p>
-              <p className="text-xs text-muted-foreground truncate">Администратор</p>
-            </div>
-          </div>
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="w-full justify-start gap-3 h-auto p-2 hover:bg-accent">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                    <span className="text-sm font-semibold text-primary-foreground">{getInitials(user.full_name)}</span>
+                  </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm font-medium truncate">{user.full_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{formatRole(user.role)}</p>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="flex flex-col items-start">
+                  <div className="font-medium">{user.full_name}</div>
+                  <div className="text-xs text-muted-foreground">{user.email}</div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Настройки
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Выйти
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
         </div>
       </div>
     </aside>
