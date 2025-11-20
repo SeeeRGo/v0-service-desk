@@ -62,9 +62,22 @@ export default function AppSidebar() {
   }, [])
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/auth/login")
+    try {
+      console.log("[v0] Logging out...")
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      })
+
+      if (response.ok) {
+        console.log("[v0] Logout successful, redirecting...")
+        router.push("/auth/login")
+        router.refresh()
+      } else {
+        console.error("[v0] Logout failed:", await response.text())
+      }
+    } catch (error) {
+      console.error("[v0] Logout error:", error)
+    }
   }
 
   const getInitials = (name: string) => {
