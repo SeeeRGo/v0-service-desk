@@ -177,8 +177,8 @@ export default function AppSidebar() {
                     <span className="text-sm font-semibold text-primary-foreground">{getInitials(user.full_name)}</span>
                   </div>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="text-sm font-medium truncate">{user.full_name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{formatRole(user.role)}</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{user.full_name}</p>
+                    <p className="text-xs font-medium text-foreground/70 truncate">{formatRole(user.role)}</p>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
