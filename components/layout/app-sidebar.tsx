@@ -40,31 +40,21 @@ export default function AppSidebar() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        console.log("[v0] Fetching user data...")
         const supabase = createClient()
         const {
           data: { user: authUser },
-          error: authError,
         } = await supabase.auth.getUser()
 
-        console.log("[v0] Auth user:", authUser)
-        console.log("[v0] Auth error:", authError)
-
         if (authUser) {
-          const { data: profile, error: profileError } = await supabase
+          const { data: profile } = await supabase
             .from("users")
             .select("full_name, email, role")
             .eq("id", authUser.id)
             .single()
 
-          console.log("[v0] Profile data:", profile)
-          console.log("[v0] Profile error:", profileError)
-
           if (profile) {
             setUser(profile)
           } else {
-            // Fallback to auth user data
-            console.log("[v0] Using fallback user data from auth")
             setUser({
               full_name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "Пользователь",
               email: authUser.email || "",
@@ -73,7 +63,12 @@ export default function AppSidebar() {
           }
         }
       } catch (error) {
-        console.error("[v0] Error fetching user:", error)
+        console.error("Error fetching user:", error)
+        setUser({
+          full_name: "Гость",
+          email: "guest@example.com",
+          role: "client",
+        })
       } finally {
         setIsLoading(false)
       }
@@ -84,20 +79,16 @@ export default function AppSidebar() {
 
   const handleLogout = async () => {
     try {
-      console.log("[v0] Logging out...")
       const response = await fetch("/api/auth/logout", {
         method: "POST",
       })
 
       if (response.ok) {
-        console.log("[v0] Logout successful, redirecting...")
         router.push("/auth/login")
         router.refresh()
-      } else {
-        console.error("[v0] Logout failed:", await response.text())
       }
     } catch (error) {
-      console.error("[v0] Logout error:", error)
+      console.error("Logout error:", error)
     }
   }
 
