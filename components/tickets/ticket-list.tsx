@@ -1,11 +1,14 @@
+"use client"
+
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { mockTickets } from "@/lib/mock-data"
 import { TICKET_STATUS_LABELS, TICKET_PRIORITY_LABELS } from "@/lib/constants"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { ru } from "date-fns/locale"
 import type { TicketStatus, TicketPriority } from "@/lib/types"
+import { useEffect, useState } from "react"
+import { Loader2 } from "lucide-react"
 
 const statusColors: Record<TicketStatus, string> = {
   active: "bg-blue-500/10 text-blue-500",
@@ -24,7 +27,82 @@ const priorityColors: Record<TicketPriority, string> = {
   critical: "bg-red-500/10 text-red-500",
 }
 
+interface Ticket {
+  id: string
+  ticket_number: string
+  title: string
+  description: string
+  status: TicketStatus
+  priority: TicketPriority
+  created_at: string
+  client?: {
+    full_name: string
+    company_id?: string
+  }
+  assigned?: {
+    full_name: string
+  }
+}
+
 export default function TicketList() {
+  const [tickets, setTickets] = useState<Ticket[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadTickets() {
+      try {
+        const response = await fetch("/api/tickets")
+
+        if (!response.ok) {
+          throw new Error("Failed to load tickets")
+        }
+
+        const data = await response.json()
+        setTickets(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Ошибка загрузки заявок")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadTickets()
+  }, [])
+
+  if (loading) {
+    return (
+      <Card className="p-8 flex items-center justify-center">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin" />
+          <span>Загрузка заявок...</span>
+        </div>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-red-500">
+          <p className="font-semibold">Ошибка загрузки</p>
+          <p className="text-sm mt-1">{error}</p>
+        </div>
+      </Card>
+    )
+  }
+
+  if (tickets.length === 0) {
+    return (
+      <Card className="p-8">
+        <div className="text-center text-muted-foreground">
+          <p className="font-semibold">Заявок пока нет</p>
+          <p className="text-sm mt-1">Создайте первую заявку, нажав кнопку "Создать заявку"</p>
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
@@ -41,11 +119,11 @@ export default function TicketList() {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {mockTickets.map((ticket) => (
+            {tickets.map((ticket) => (
               <tr key={ticket.id} className="hover:bg-accent/50 transition-colors">
                 <td className="p-4">
                   <Link href={`/tickets/${ticket.id}`} className="font-mono text-sm text-primary hover:underline">
-                    {ticket.number}
+                    {ticket.ticket_number}
                   </Link>
                 </td>
                 <td className="p-4">
@@ -56,8 +134,7 @@ export default function TicketList() {
                 </td>
                 <td className="p-4">
                   <div className="text-sm">
-                    <div className="font-medium">{ticket.clientName}</div>
-                    <div className="text-muted-foreground">{ticket.clientCompany}</div>
+                    <div className="font-medium">{ticket.client?.full_name || "Неизвестно"}</div>
                   </div>
                 </td>
                 <td className="p-4">
@@ -71,10 +148,10 @@ export default function TicketList() {
                   </Badge>
                 </td>
                 <td className="p-4 text-sm">
-                  {ticket.assignedToName || <span className="text-muted-foreground">Не назначен</span>}
+                  {ticket.assigned?.full_name || <span className="text-muted-foreground">Не назначен</span>}
                 </td>
                 <td className="p-4 text-sm text-muted-foreground">
-                  {formatDistanceToNow(ticket.createdAt, { addSuffix: true, locale: ru })}
+                  {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true, locale: ru })}
                 </td>
               </tr>
             ))}
