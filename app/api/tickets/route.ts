@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  console.log("[v0] POST /api/tickets - Starting...")
+  console.log("[v0] POST /api/tickets - Starting ticket creation")
 
   const supabase = await createClient()
 
@@ -47,10 +47,10 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  console.log("[v0] Auth user:", user?.id, user?.email)
+  console.log("[v0] Current user:", user ? { id: user.id, email: user.email } : "No user")
 
   if (!user) {
-    console.error("[v0] No authenticated user")
+    console.log("[v0] Unauthorized - No user session")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

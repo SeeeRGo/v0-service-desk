@@ -29,40 +29,44 @@ export default function CreateTicketForm() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    console.log("[v0] Creating ticket with data:", formData)
+    console.log("[v0] Form submitted with data:", formData)
 
     try {
+      const payload = {
+        ticket_type: formData.type,
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        category_id: formData.category_id || null,
+        status: "active",
+        urgency: "medium",
+        impact: "medium",
+      }
+
+      console.log("[v0] Sending payload:", payload)
+
       const response = await fetch("/api/tickets", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ticket_type: formData.type,
-          title: formData.title,
-          description: formData.description,
-          priority: formData.priority,
-          category_id: formData.category_id || null,
-          status: "active",
-          urgency: "medium",
-          impact: "medium",
-        }),
+        body: JSON.stringify(payload),
       })
 
       console.log("[v0] Response status:", response.status)
+      console.log("[v0] Response ok:", response.ok)
+
+      const responseData = await response.json()
+      console.log("[v0] Response data:", responseData)
 
       if (!response.ok) {
-        const error = await response.json()
-        console.error("[v0] Error creating ticket:", error)
-        throw new Error(error.error || "Ошибка создания заявки")
+        console.error("[v0] Error creating ticket:", responseData)
+        throw new Error(responseData.error || "Ошибка создания заявки")
       }
-
-      const data = await response.json()
-      console.log("[v0] Ticket created:", data)
 
       toast({
         title: "Заявка создана",
-        description: `Заявка #${data.ticket_number} успешно создана`,
+        description: `Заявка #${responseData.ticket_number} успешно создана`,
       })
 
       router.push("/tickets")
