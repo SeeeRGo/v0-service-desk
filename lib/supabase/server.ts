@@ -7,7 +7,15 @@ export async function createClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
+  console.log("[v0] Server client - URL exists:", !!supabaseUrl)
+  console.log("[v0] Server client - Key exists:", !!supabaseKey)
+
   if (!supabaseUrl || !supabaseKey) {
+    console.error("[v0] Missing Supabase credentials on server")
+    console.error(
+      "[v0] Available env vars:",
+      Object.keys(process.env).filter((k) => k.includes("SUPABASE")),
+    )
     throw new Error("Missing Supabase environment variables")
   }
 

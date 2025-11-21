@@ -2,7 +2,14 @@ import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
-  const supabase = await createClient()
+  let supabase
+  try {
+    supabase = await createClient()
+  } catch (error) {
+    console.error("[v0] Failed to create Supabase client:", error)
+    return NextResponse.json({ error: "Database connection error" }, { status: 500 })
+  }
+
   const { searchParams } = new URL(request.url)
 
   const status = searchParams.get("status")
@@ -32,9 +39,11 @@ export async function GET(request: Request) {
   const { data, error } = await query
 
   if (error) {
+    console.error("[v0] Tickets query error:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  console.log("[v0] Loaded tickets:", data?.length || 0)
   return NextResponse.json(data)
 }
 
