@@ -1,21 +1,29 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { SERVICE_CATEGORIES } from "@/lib/constants"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+
+interface Category {
+  id: string
+  name: string
+  description: string | null
+  parent_id: string | null
+}
 
 export default function CreateTicketForm() {
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
 
   const [formData, setFormData] = useState({
     type: "incident",
@@ -25,11 +33,26 @@ export default function CreateTicketForm() {
     description: "",
   })
 
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const response = await fetch("/api/categories")
+        if (response.ok) {
+          const data = await response.json()
+          setCategories(data)
+        }
+      } catch (error) {
+        console.error("Error loading categories:", error)
+      } finally {
+        setIsLoadingCategories(false)
+      }
+    }
+    loadCategories()
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-
-    console.log("[v0] Form submitted with data:", formData)
 
     try {
       const payload = {
@@ -43,8 +66,6 @@ export default function CreateTicketForm() {
         impact: "medium",
       }
 
-      console.log("[v0] Sending payload:", payload)
-
       const response = await fetch("/api/tickets", {
         method: "POST",
         headers: {
@@ -53,14 +74,9 @@ export default function CreateTicketForm() {
         body: JSON.stringify(payload),
       })
 
-      console.log("[v0] Response status:", response.status)
-      console.log("[v0] Response ok:", response.ok)
-
       const responseData = await response.json()
-      console.log("[v0] Response data:", responseData)
 
       if (!response.ok) {
-        console.error("[v0] Error creating ticket:", responseData)
         throw new Error(responseData.error || "Ошибка создания заявки")
       }
 
@@ -72,7 +88,6 @@ export default function CreateTicketForm() {
       router.push("/tickets")
       router.refresh()
     } catch (error) {
-      console.error("[v0] Error in handleSubmit:", error)
       toast({
         title: "Ошибка",
         description: error instanceof Error ? error.message : "Не удалось создать заявку",
@@ -125,12 +140,13 @@ export default function CreateTicketForm() {
           <Select
             value={formData.category_id}
             onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+            disabled={isLoadingCategories}
           >
             <SelectTrigger id="category">
-              <SelectValue placeholder="Выберите категорию" />
+              <SelectValue placeholder={isLoadingCategories ? "Загрузка..." : "Выберите категорию"} />
             </SelectTrigger>
             <SelectContent>
-              {SERVICE_CATEGORIES.map((category) => (
+              {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
                 </SelectItem>

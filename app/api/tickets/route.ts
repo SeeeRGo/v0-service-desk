@@ -39,23 +39,17 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  console.log("[v0] POST /api/tickets - Starting ticket creation")
-
   const supabase = await createClient()
 
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  console.log("[v0] Current user:", user ? { id: user.id, email: user.email } : "No user")
-
   if (!user) {
-    console.log("[v0] Unauthorized - No user session")
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const body = await request.json()
-  console.log("[v0] Request body:", body)
 
   const ticketData = {
     type: body.ticket_type || body.type,
@@ -71,15 +65,11 @@ export async function POST(request: Request) {
     support_level: "L1",
   }
 
-  console.log("[v0] Ticket data to insert:", ticketData)
-
   const { data, error } = await supabase.from("tickets").insert(ticketData).select().single()
 
   if (error) {
-    console.error("[v0] Database error:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  console.log("[v0] Ticket created successfully:", data)
   return NextResponse.json(data)
 }
