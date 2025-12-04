@@ -3,8 +3,9 @@ import { NextResponse } from "next/server"
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
+  console.log('id in route');
   const { id } = await params
-
+  
   const { data, error } = await supabase
     .from("tickets")
     .select(`

@@ -1,6 +1,30 @@
 import { Card } from "@/components/ui/card"
-import { mockDashboardStats } from "@/lib/mock-data"
+// import { mockDashboardStats } from "@/lib/mock-data"
 import { Progress } from "@/components/ui/progress"
+import { DashboardStats } from "@/lib/types"
+export const mockDashboardStats: DashboardStats = {
+  totalTickets: 125,
+  activeTickets: 23,
+  assignedTickets: 15,
+  inProgressTickets: 18,
+  resolvedToday: 12,
+  averageResolutionTime: 4.5,
+  slaBreached: 3,
+  engineerWorkload: [
+    {
+      engineerId: "1",
+      engineerName: "Иван Петров",
+      activeTickets: 5,
+      avgResolutionTime: 3.8,
+    },
+    {
+      engineerId: "2",
+      engineerName: "Мария Сидорова",
+      activeTickets: 7,
+      avgResolutionTime: 5.2,
+    },
+  ],
+}
 
 export default function DashboardOverview() {
   const { engineerWorkload } = mockDashboardStats

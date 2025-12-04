@@ -6,7 +6,7 @@ import { TICKET_STATUS_LABELS, TICKET_PRIORITY_LABELS } from "@/lib/constants"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { ru } from "date-fns/locale"
-import type { TicketStatus, TicketPriority } from "@/lib/types"
+import type { TicketStatus, TicketPriority, Ticket } from "@/lib/types"
 import { useEffect, useState } from "react"
 import { Loader2 } from "lucide-react"
 
@@ -27,22 +27,7 @@ const priorityColors: Record<TicketPriority, string> = {
   critical: "bg-red-500/10 text-red-500",
 }
 
-interface Ticket {
-  id: string
-  ticket_number: string
-  title: string
-  description: string
-  status: TicketStatus
-  priority: TicketPriority
-  created_at: string
-  client?: {
-    full_name: string
-    company_id?: string
-  }
-  assigned?: {
-    full_name: string
-  }
-}
+
 
 export default function TicketList() {
   const [tickets, setTickets] = useState<Ticket[]>([])
@@ -134,7 +119,7 @@ export default function TicketList() {
                 </td>
                 <td className="p-4">
                   <div className="text-sm">
-                    <div className="font-medium">{ticket.client?.full_name || "Неизвестно"}</div>
+                    {/* <div className="font-medium">{ticket.client?.full_name || "Неизвестно"}</div> */}
                   </div>
                 </td>
                 <td className="p-4">
@@ -148,10 +133,10 @@ export default function TicketList() {
                   </Badge>
                 </td>
                 <td className="p-4 text-sm">
-                  {ticket.assigned?.full_name || <span className="text-muted-foreground">Не назначен</span>}
+                  {/* {ticket.assigned?.full_name || <span className="text-muted-foreground">Не назначен</span>} */}
                 </td>
                 <td className="p-4 text-sm text-muted-foreground">
-                  {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true, locale: ru })}
+                  {/* {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true, locale: ru })} */}
                 </td>
               </tr>
             ))}

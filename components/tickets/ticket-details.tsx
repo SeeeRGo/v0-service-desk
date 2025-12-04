@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import type { Ticket, TicketStatus, TicketPriority } from "@/lib/types"
 import { TICKET_STATUS_LABELS, TICKET_PRIORITY_LABELS, TICKET_TYPE_LABELS } from "@/lib/constants"
-import { format } from "date-fns"
+import { format, isAfter } from "date-fns"
 import { ru } from "date-fns/locale"
 import { Clock, User, Building2, Mail, Phone, Calendar, MessageSquare } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -33,6 +33,7 @@ interface TicketDetailsProps {
 }
 
 export default function TicketDetails({ ticket }: TicketDetailsProps) {
+  const slaBreached = ticket.sla_due_date && !ticket.resolved_at && isAfter(new Date(), new Date(ticket.sla_due_date))
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -42,7 +43,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
             <div className="flex items-center gap-3 mb-2">
               <h1 className="text-2xl font-bold">{ticket.title}</h1>
             </div>
-            <p className="text-sm font-mono text-muted-foreground">{ticket.number}</p>
+            <p className="text-sm font-mono text-muted-foreground">{ticket.ticket_number}</p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className={priorityColors[ticket.priority]}>
@@ -51,7 +52,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
             <Badge variant="outline" className={statusColors[ticket.status]}>
               {TICKET_STATUS_LABELS[ticket.status]}
             </Badge>
-            {ticket.slaBreached && <Badge variant="destructive">SLA нарушен</Badge>}
+            {slaBreached && <Badge variant="destructive">SLA нарушен</Badge>}
           </div>
         </div>
 
@@ -60,21 +61,21 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
             <Calendar className="w-4 h-4 text-muted-foreground" />
             <div>
               <p className="text-muted-foreground">Создана</p>
-              <p className="font-medium">{format(ticket.createdAt, "dd MMM yyyy HH:mm", { locale: ru })}</p>
+              <p className="font-medium">{format(ticket.created_at, "dd MMM yyyy HH:mm", { locale: ru })}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-muted-foreground" />
             <div>
               <p className="text-muted-foreground">Исполнитель</p>
-              <p className="font-medium">{ticket.assignedToName || "Не назначен"}</p>
+              <p className="font-medium">{ticket.assigned?.full_name || "Не назначен"}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-muted-foreground" />
             <div>
               <p className="text-muted-foreground">Уровень поддержки</p>
-              <p className="font-medium">{ticket.supportLevel}</p>
+              <p className="font-medium">{ticket.support_level}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -100,7 +101,8 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
           <Card className="p-6">
             <h2 className="text-lg font-semibold mb-4">Комментарии</h2>
             <div className="space-y-4">
-              {ticket.comments?.map((comment) => (
+              {/* TODO get comments from the DB */}
+              {/* {ticket.comments?.map((comment) => (
                 <div key={comment.id} className="p-4 rounded-lg bg-accent/50">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-semibold text-sm">{comment.userName}</span>
@@ -110,11 +112,12 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
                   </div>
                   <p className="text-sm">{comment.content}</p>
                 </div>
-              ))}
+              ))} */}
             </div>
 
             <div className="mt-6 space-y-3">
               <Textarea placeholder="Добавить комментарий..." rows={3} />
+              {/* TODO Make interactive */}
               <Button>Отправить комментарий</Button>
             </div>
           </Card>
@@ -123,6 +126,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Client info */}
+          {/* TODO Fix logic */}
           <Card className="p-6">
             <h2 className="text-lg font-semibold mb-4">Информация о клиенте</h2>
             <div className="space-y-3 text-sm">
@@ -130,17 +134,17 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
                 <User className="w-4 h-4 text-muted-foreground" />
                 <div>
                   <p className="text-muted-foreground">ФИО</p>
-                  <p className="font-medium">{ticket.clientName}</p>
+                  <p className="font-medium">{ticket.client?.full_name}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-muted-foreground" />
                 <div>
                   <p className="text-muted-foreground">Email</p>
-                  <p className="font-medium">{ticket.clientEmail}</p>
+                  {/* <p className="font-medium">{ticket.client.}</p> */}
                 </div>
               </div>
-              {ticket.clientPhone && (
+              {/* {ticket.clientPhone && (
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-muted-foreground" />
                   <div>
@@ -148,13 +152,13 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
                     <p className="font-medium">{ticket.clientPhone}</p>
                   </div>
                 </div>
-              )}
-              {ticket.clientCompany && (
+              )} */}
+              {ticket.client?.company_id && (
                 <div className="flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-muted-foreground" />
                   <div>
                     <p className="text-muted-foreground">Компания</p>
-                    <p className="font-medium">{ticket.clientCompany}</p>
+                    <p className="font-medium">{ticket.client?.company_id}</p>
                   </div>
                 </div>
               )}
@@ -166,6 +170,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
             <h2 className="text-lg font-semibold mb-4">Действия</h2>
             <div className="space-y-3">
               <div className="space-y-2">
+                {/* TODO Connect to api */}
                 <label className="text-sm font-medium">Изменить статус</label>
                 <Select defaultValue={ticket.status}>
                   <SelectTrigger>
@@ -185,17 +190,18 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Назначить исполнителя</label>
-                <Select defaultValue={ticket.assignedTo}>
+                <Select defaultValue={ticket.assigned?.full_name}>
                   <SelectTrigger>
                     <SelectValue placeholder="Выберите исполнителя" />
                   </SelectTrigger>
+                  {/* TODO Replace with actual users select logic */}
                   <SelectContent>
                     <SelectItem value="1">Иван Петров (L1)</SelectItem>
                     <SelectItem value="2">Мария Сидорова (L2)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
+              {/* TODO Make interactive */}
               <Button className="w-full">Эскалировать на L2</Button>
               <Button variant="outline" className="w-full bg-transparent">
                 Закрыть заявку

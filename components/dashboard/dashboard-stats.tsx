@@ -1,6 +1,29 @@
 import { Card } from "@/components/ui/card"
-import { mockDashboardStats } from "@/lib/mock-data"
+import { DashboardStats as DashboardStatsType } from "@/lib/types"
 import { Ticket, Clock, CheckCircle2, AlertTriangle, TrendingUp, Users } from "lucide-react"
+export const mockDashboardStats: DashboardStatsType = {
+  totalTickets: 125,
+  activeTickets: 23,
+  assignedTickets: 15,
+  inProgressTickets: 18,
+  resolvedToday: 12,
+  averageResolutionTime: 4.5,
+  slaBreached: 3,
+  engineerWorkload: [
+    {
+      engineerId: "1",
+      engineerName: "Иван Петров",
+      activeTickets: 5,
+      avgResolutionTime: 3.8,
+    },
+    {
+      engineerId: "2",
+      engineerName: "Мария Сидорова",
+      activeTickets: 7,
+      avgResolutionTime: 5.2,
+    },
+  ],
+}
 
 export default function DashboardStats() {
   const stats = mockDashboardStats

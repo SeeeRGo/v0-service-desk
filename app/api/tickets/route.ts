@@ -37,6 +37,7 @@ export async function GET(request: Request) {
   }
 
   const { data, error } = await query
+  console.log('data', data);
 
   if (error) {
     console.error("[v0] Tickets query error:", error)
@@ -59,7 +60,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json()
-
+  
   const ticketData = {
     type: body.ticket_type || body.type,
     title: body.title,

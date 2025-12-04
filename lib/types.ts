@@ -1,3 +1,5 @@
+import { TICKET_TYPE_LABELS } from "./constants"
+
 export type UserRole = "client" | "engineer" | "supervisor" | "admin"
 
 export type TicketStatus =
@@ -26,33 +28,6 @@ export interface User {
   skills?: string[]
   priority?: 0 | 1 | 2
   isActive?: boolean
-}
-
-export interface Ticket {
-  id: string
-  number: string
-  title: string
-  description: string
-  type: TicketType
-  status: TicketStatus
-  priority: TicketPriority
-  category: string
-  clientId: string
-  clientName: string
-  clientEmail: string
-  clientPhone?: string
-  clientCompany?: string
-  assignedTo?: string
-  assignedToName?: string
-  supportLevel: SupportLevel
-  createdAt: Date
-  updatedAt: Date
-  resolvedAt?: Date
-  closedAt?: Date
-  slaDeadline?: Date
-  slaBreached?: boolean
-  attachments?: string[]
-  comments?: TicketComment[]
 }
 
 export interface TicketComment {
@@ -86,4 +61,24 @@ export interface DashboardStats {
     activeTickets: number
     avgResolutionTime: number
   }[]
+}
+export interface Ticket {
+  id: string
+  ticket_number: string
+  title: string
+  description: string
+  status: TicketStatus
+  priority: TicketPriority
+  created_at: string
+  client?: {
+    full_name: string
+    company_id?: string
+  }
+  assigned?: {
+    full_name: string
+  }
+  sla_due_date: string | null
+  resolved_at: string | null
+  support_level: string
+  type: keyof typeof TICKET_TYPE_LABELS
 }

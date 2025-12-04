@@ -1,11 +1,13 @@
+'use client'
+
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { mockTickets } from "@/lib/mock-data"
 import { TICKET_STATUS_LABELS, TICKET_PRIORITY_LABELS } from "@/lib/constants"
 import Link from "next/link"
-import { formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow, isAfter } from "date-fns"
 import { ru } from "date-fns/locale"
-import type { TicketStatus, TicketPriority } from "@/lib/types"
+import type { TicketStatus, TicketPriority, Ticket } from "@/lib/types"
+import { useEffect, useState } from "react"
 
 const statusColors: Record<TicketStatus, string> = {
   active: "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20",
@@ -25,8 +27,30 @@ const priorityColors: Record<TicketPriority, string> = {
 }
 
 export default function RecentTickets() {
-  const recentTickets = mockTickets.slice(0, 5)
+  const [recentTickets, setRecentTickets] = useState<Ticket[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    async function loadTickets() {
+      try {
+        const response = await fetch("/api/tickets")
 
+        if (!response.ok) {
+          throw new Error("Failed to load tickets")
+        }
+
+        const data = await response.json()
+        setRecentTickets(data.slice(0,5))
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Ошибка загрузки заявок")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadTickets()
+  }, [])
+  const slaBreached = (ticket: Ticket) => ticket.sla_due_date && !ticket.resolved_at && isAfter(new Date(), new Date(ticket.sla_due_date))
   return (
     <Card className="p-6">
       <h2 className="text-xl font-bold mb-4">Последние заявки</h2>
@@ -40,7 +64,7 @@ export default function RecentTickets() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-mono text-muted-foreground">{ticket.number}</span>
+                  <span className="text-xs font-mono text-muted-foreground">{ticket.ticket_number}</span>
                   <Badge variant="outline" className={priorityColors[ticket.priority]}>
                     {TICKET_PRIORITY_LABELS[ticket.priority]}
                   </Badge>
@@ -51,18 +75,18 @@ export default function RecentTickets() {
                 <h3 className="font-semibold mb-1 truncate">{ticket.title}</h3>
                 <p className="text-sm text-muted-foreground mb-2 line-clamp-1">{ticket.description}</p>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>{ticket.clientName}</span>
-                  {ticket.assignedToName && (
+                  <span>{ticket.client?.full_name}</span>
+                  {ticket.assigned?.full_name && (
                     <>
                       <span>•</span>
-                      <span>Исполнитель: {ticket.assignedToName}</span>
+                      <span>Исполнитель: {ticket.assigned.full_name}</span>
                     </>
                   )}
                   <span>•</span>
-                  <span>{formatDistanceToNow(ticket.createdAt, { addSuffix: true, locale: ru })}</span>
+                  <span>{formatDistanceToNow(ticket.created_at, { addSuffix: true, locale: ru })}</span>
                 </div>
               </div>
-              {ticket.slaBreached && <div className="text-destructive text-xs font-medium">SLA нарушен</div>}
+              {slaBreached(ticket) && <div className="text-destructive text-xs font-medium">SLA нарушен</div>}
             </div>
           </Link>
         ))}
