@@ -38,10 +38,11 @@ export default function CreateKBArticleForm() {
       const response = await fetch("/api/categories")
       const data = await response.json()
       if (response.ok) {
-        setCategories(data.categories)
+        setCategories(data.categories || [])
       }
     } catch (error) {
       console.error("Error loading categories:", error)
+      setCategories([])
     }
   }
 
@@ -118,11 +119,17 @@ export default function CreateKBArticleForm() {
               <SelectValue placeholder="Выберите категорию" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+              {categories && categories.length > 0 ? (
+                categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="" disabled>
+                  Категории не найдены
                 </SelectItem>
-              ))}
+              )}
             </SelectContent>
           </Select>
         </div>
