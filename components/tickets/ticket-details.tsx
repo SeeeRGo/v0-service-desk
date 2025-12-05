@@ -8,7 +8,7 @@ import type { Ticket, TicketStatus, TicketPriority, User } from "@/lib/types"
 import { TICKET_STATUS_LABELS, TICKET_PRIORITY_LABELS, TICKET_TYPE_LABELS } from "@/lib/constants"
 import { format, isAfter } from "date-fns"
 import { ru } from "date-fns/locale"
-import { Clock, User as UserIcon, Building2, Mail, Phone, Calendar, MessageSquare } from "lucide-react"
+import { Clock, UserIcon, Building2, Mail, Phone, Calendar, MessageSquare } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -35,7 +35,6 @@ interface TicketDetailsProps {
   ticket: Ticket
 }
 
-
 export default function TicketDetails({ ticket }: TicketDetailsProps) {
   const [comments, setComments] = useState<any[]>(ticket.comments || [])
   const [newComment, setNewComment] = useState("")
@@ -45,7 +44,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  
+
   const slaBreached = ticket.sla_due_date && !ticket.resolved_at && isAfter(new Date(), new Date(ticket.sla_due_date))
 
   // Fetch users for assignment dropdown
@@ -67,7 +66,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
   // Handle comment submission
   const handleCommentSubmit = async () => {
     if (!newComment.trim()) return
-    
+
     setIsLoading(true)
     try {
       const response = await fetch(`/api/tickets/${ticket.id}/comments`, {
@@ -80,7 +79,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
           is_internal: false,
         }),
       })
-      
+
       if (response.ok) {
         const newCommentData = await response.json()
         setComments([...comments, newCommentData])
@@ -114,7 +113,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
         },
         body: JSON.stringify({ status: newStatus }),
       })
-      
+
       if (response.ok) {
         setSelectedStatus(newStatus)
         toast({
@@ -147,7 +146,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
         },
         body: JSON.stringify({ assigned_to: assigneeId }),
       })
-      
+
       if (response.ok) {
         setSelectedAssignee(assigneeId)
         toast({
@@ -180,10 +179,10 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
         },
         body: JSON.stringify({
           status: "escalated",
-          support_level: "L2"
+          support_level: "L2",
         }),
       })
-      
+
       if (response.ok) {
         toast({
           title: "Заявка эскалирована",
@@ -215,10 +214,10 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
         },
         body: JSON.stringify({
           status: "closed",
-          resolved_at: new Date().toISOString()
+          resolved_at: new Date().toISOString(),
         }),
       })
-      
+
       if (response.ok) {
         toast({
           title: "Заявка закрыта",
@@ -322,9 +321,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
                   )}
                 </div>
               ))}
-              {comments.length === 0 && (
-                <p className="text-sm text-muted-foreground">Пока нет комментариев</p>
-              )}
+              {comments.length === 0 && <p className="text-sm text-muted-foreground">Пока нет комментариев</p>}
             </div>
 
             <div className="mt-6 space-y-3">
@@ -334,10 +331,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
               />
-              <Button
-                onClick={handleCommentSubmit}
-                disabled={!newComment.trim() || isLoading}
-              >
+              <Button onClick={handleCommentSubmit} disabled={!newComment.trim() || isLoading}>
                 {isLoading ? "Отправка..." : "Отправить комментарий"}
               </Button>
             </div>
@@ -413,20 +407,19 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Назначить исполнителя</label>
-                <Select
-                  value={selectedAssignee}
-                  onValueChange={handleAssigneeChange}
-                  disabled={isLoading}
-                >
+                <Select value={selectedAssignee} onValueChange={handleAssigneeChange} disabled={isLoading}>
                   <SelectTrigger>
                     <SelectValue placeholder="Выберите исполнителя" />
                   </SelectTrigger>
                   <SelectContent>
                     {users.map((user) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.name} ({user.supportLevel || "N/A"})
+                        {user.full_name || user.name} - {user.role}
                       </SelectItem>
                     ))}
+                    {users.length === 0 && (
+                      <div className="px-2 py-1.5 text-sm text-muted-foreground">Нет доступных исполнителей</div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

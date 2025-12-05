@@ -1,4 +1,4 @@
-import { TICKET_TYPE_LABELS } from "./constants"
+import type { TICKET_TYPE_LABELS } from "./constants"
 
 export type UserRole = "client" | "engineer" | "supervisor" | "admin"
 
@@ -19,15 +19,18 @@ export type SupportLevel = "L1" | "L2" | "L3"
 
 export interface User {
   id: string
+  full_name?: string
   name: string
   email: string
   phone?: string
   role: UserRole
   company?: string
+  company_id?: string
   supportLevel?: SupportLevel
   skills?: string[]
   priority?: 0 | 1 | 2
   isActive?: boolean
+  created_at?: string
 }
 
 export interface TicketComment {
