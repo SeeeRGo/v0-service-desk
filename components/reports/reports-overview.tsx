@@ -25,6 +25,7 @@ interface IncidentStats {
   statusCounts: { [key: string]: number }
   priorityCounts: { [key: string]: number }
   typeCounts: { [key: string]: number }
+  categoryCounts: { [key: string]: number } // Added categoryCounts
   avgResolutionTime: number
   dailyCounts: { [key: string]: number }
   totalTickets: number
@@ -116,6 +117,13 @@ export default function ReportsOverview() {
           date: new Date(date).toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }),
           tickets: count,
         }))
+    : []
+
+  const categoryChartData = incidentStats
+    ? Object.entries(incidentStats.categoryCounts).map(([key, value]) => ({
+        name: key,
+        value: value as number,
+      }))
     : []
 
   if (loading) {
@@ -239,6 +247,19 @@ export default function ReportsOverview() {
               <YAxis />
               <Tooltip />
               <Bar dataKey="value" fill="#8b5cf6" name="Количество" />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Статистика по категориям</h3>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={categoryChartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="value" fill="#06b6d4" name="Количество" />
             </BarChart>
           </ResponsiveContainer>
         </Card>

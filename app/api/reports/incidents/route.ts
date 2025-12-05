@@ -92,10 +92,22 @@ export async function GET(request: Request) {
       dailyCounts[date] = (dailyCounts[date] || 0) + 1
     })
 
+    const { data: ticketsByCategory } = await supabase
+      .from("tickets")
+      .select("category_id, service_categories(name)")
+      .gte("created_at", startDate.toISOString())
+
+    const categoryCounts: { [key: string]: number } = {}
+    ticketsByCategory?.forEach((ticket) => {
+      const categoryName = (ticket.service_categories as any)?.name || "Без категории"
+      categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1
+    })
+
     return NextResponse.json({
       statusCounts,
       priorityCounts,
       typeCounts,
+      categoryCounts, // Added categoryCounts to response
       avgResolutionTime: Math.round(avgResolutionTime * 10) / 10,
       dailyCounts,
       totalTickets: ticketsByStatus?.length || 0,
