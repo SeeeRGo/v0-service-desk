@@ -1,33 +1,10 @@
 import { Card } from "@/components/ui/card"
-// import { mockDashboardStats } from "@/lib/mock-data"
 import { Progress } from "@/components/ui/progress"
 import { DashboardStats } from "@/lib/types"
-export const mockDashboardStats: DashboardStats = {
-  totalTickets: 125,
-  activeTickets: 23,
-  assignedTickets: 15,
-  inProgressTickets: 18,
-  resolvedToday: 12,
-  averageResolutionTime: 4.5,
-  slaBreached: 3,
-  engineerWorkload: [
-    {
-      engineerId: "1",
-      engineerName: "Иван Петров",
-      activeTickets: 5,
-      avgResolutionTime: 3.8,
-    },
-    {
-      engineerId: "2",
-      engineerName: "Мария Сидорова",
-      activeTickets: 7,
-      avgResolutionTime: 5.2,
-    },
-  ],
-}
+
 
 export default function DashboardOverview() {
-  const { engineerWorkload } = mockDashboardStats
+  const engineerWorkload = [] // TODO Make an actual api call for this
 
   return (
     <div className="space-y-6">
@@ -50,12 +27,8 @@ export default function DashboardOverview() {
       <Card className="p-6">
         <h2 className="text-xl font-bold mb-4">Статистика по категориям</h2>
         <div className="space-y-3">
-          {[
-            { category: "Сетевые технологии", count: 15, percentage: 30 },
-            { category: "ПО", count: 12, percentage: 24 },
-            { category: "Оборудование", count: 10, percentage: 20 },
-            { category: "Email", count: 8, percentage: 16 },
-            { category: "Другое", count: 5, percentage: 10 },
+          {/* TODO make an actual api call for this */ [
+          
           ].map((item, index) => (
             <div key={index}>
               <div className="flex items-center justify-between mb-1">

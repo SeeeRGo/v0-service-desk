@@ -26,7 +26,7 @@ export const mockDashboardStats: DashboardStatsType = {
 }
 
 export default function DashboardStats() {
-  const stats = mockDashboardStats
+  const stats: DashboardStatsType = mockDashboardStats // TODO make an actual api call for this
 
   const statCards = [
     {
