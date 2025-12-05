@@ -1,6 +1,10 @@
+"use client"
+
 import { Card } from "@/components/ui/card"
-import { DashboardStats as DashboardStatsType } from "@/lib/types"
+import type { DashboardStats as DashboardStatsType } from "@/lib/types"
 import { Ticket, Clock, CheckCircle2, AlertTriangle, TrendingUp, Users } from "lucide-react"
+import { useEffect, useState } from "react"
+
 export const mockDashboardStats: DashboardStatsType = {
   totalTickets: 125,
   activeTickets: 23,
@@ -26,7 +30,37 @@ export const mockDashboardStats: DashboardStatsType = {
 }
 
 export default function DashboardStats() {
-  const stats: DashboardStatsType = mockDashboardStats // TODO make an actual api call for this
+  const [stats, setStats] = useState<DashboardStatsType | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const response = await fetch("/api/dashboard/stats")
+        if (response.ok) {
+          const data = await response.json()
+          setStats(data)
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard stats:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadStats()
+  }, [])
+
+  if (loading || !stats) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <Card key={i} className="p-6 animate-pulse">
+            <div className="h-16 bg-muted rounded" />
+          </Card>
+        ))}
+      </div>
+    )
+  }
 
   const statCards = [
     {
