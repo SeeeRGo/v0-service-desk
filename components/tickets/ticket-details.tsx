@@ -40,7 +40,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
   const [newComment, setNewComment] = useState("")
   const [users, setUsers] = useState<User[]>([])
   const [selectedStatus, setSelectedStatus] = useState<TicketStatus>(ticket.status)
-  const [selectedAssignee, setSelectedAssignee] = useState<string>(ticket.assigned?.full_name || "")
+  const [selectedAssignee, setSelectedAssignee] = useState<string>(ticket.assigned_to || "")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -148,10 +148,11 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
       })
 
       if (response.ok) {
+        const user = users.find((u) => u.id === assigneeId)
         setSelectedAssignee(assigneeId)
         toast({
           title: "Исполнитель назначен",
-          description: "Заявка успешно назначена на исполнителя",
+          description: `Заявка назначена на ${user?.full_name || user?.name}`,
         })
         router.refresh()
       } else {

@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { CalendarIcon } from "lucide-react"
+import { format, addDays, addHours } from "date-fns"
+import { ru } from "date-fns/locale"
+import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 
@@ -24,6 +30,7 @@ export default function CreateTicketForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+  const [deadline, setDeadline] = useState<Date>()
 
   const [formData, setFormData] = useState({
     type: "incident",
@@ -50,6 +57,27 @@ export default function CreateTicketForm() {
     loadCategories()
   }, [])
 
+  const setDeadlinePreset = (preset: string) => {
+    const now = new Date()
+    switch (preset) {
+      case "2hours":
+        setDeadline(addHours(now, 2))
+        break
+      case "4hours":
+        setDeadline(addHours(now, 4))
+        break
+      case "1day":
+        setDeadline(addDays(now, 1))
+        break
+      case "3days":
+        setDeadline(addDays(now, 3))
+        break
+      case "1week":
+        setDeadline(addDays(now, 7))
+        break
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -64,6 +92,7 @@ export default function CreateTicketForm() {
         status: "active",
         urgency: "medium",
         impact: "medium",
+        sla_due_date: deadline ? deadline.toISOString() : null,
       }
 
       const response = await fetch("/api/tickets", {
@@ -176,6 +205,69 @@ export default function CreateTicketForm() {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             required
           />
+        </div>
+
+        <div className="space-y-3">
+          <Label>Дедлайн выполнения</Label>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => setDeadlinePreset("2hours")}>
+              2 часа
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setDeadlinePreset("4hours")}>
+              4 часа
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setDeadlinePreset("1day")}>
+              1 день
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setDeadlinePreset("3days")}>
+              3 дня
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setDeadlinePreset("1week")}>
+              1 неделя
+            </Button>
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn("w-full justify-start text-left font-normal", !deadline && "text-muted-foreground")}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {deadline ? format(deadline, "PPP HH:mm", { locale: ru }) : "Выберите дату и время"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={deadline}
+                onSelect={setDeadline}
+                initialFocus
+                locale={ru}
+                disabled={(date) => date < new Date()}
+              />
+              {deadline && (
+                <div className="p-3 border-t">
+                  <Label className="text-xs">Время</Label>
+                  <Input
+                    type="time"
+                    value={deadline ? format(deadline, "HH:mm") : ""}
+                    onChange={(e) => {
+                      if (deadline && e.target.value) {
+                        const [hours, minutes] = e.target.value.split(":")
+                        const newDate = new Date(deadline)
+                        newDate.setHours(Number.parseInt(hours), Number.parseInt(minutes))
+                        setDeadline(newDate)
+                      }
+                    }}
+                    className="mt-1"
+                  />
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+          {deadline && (
+            <p className="text-sm text-muted-foreground">Дедлайн: {format(deadline, "PPP HH:mm", { locale: ru })}</p>
+          )}
         </div>
 
         <div className="space-y-2">
