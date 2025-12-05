@@ -39,7 +39,7 @@ export default function CreateTicketForm() {
         const response = await fetch("/api/categories")
         if (response.ok) {
           const data = await response.json()
-          setCategories(data)
+          setCategories(data.categories || [])
         }
       } catch (error) {
         console.error("Error loading categories:", error)
