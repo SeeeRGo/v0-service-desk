@@ -72,13 +72,17 @@ export interface Ticket {
   created_at: string
   client?: {
     full_name: string
+    email?: string
+    phone?: string
     company_id?: string
   }
   assigned?: {
     full_name: string
+    email?: string
   }
   sla_due_date: string | null
   resolved_at: string | null
   support_level: string
   type: keyof typeof TICKET_TYPE_LABELS
+  comments?: TicketComment[]
 }
