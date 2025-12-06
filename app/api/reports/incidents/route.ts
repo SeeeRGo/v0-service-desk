@@ -103,11 +103,16 @@ export async function GET(request: Request) {
       categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1
     })
 
+    const categories = Object.entries(categoryCounts).map(([name, count]) => ({
+      name,
+      count: count as number,
+    }))
+
     return NextResponse.json({
       statusCounts,
       priorityCounts,
       typeCounts,
-      categoryCounts, // Added categoryCounts to response
+      categories, // Changed from categoryCounts to categories array
       avgResolutionTime: Math.round(avgResolutionTime * 10) / 10,
       dailyCounts,
       totalTickets: ticketsByStatus?.length || 0,
