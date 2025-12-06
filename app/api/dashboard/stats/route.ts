@@ -46,31 +46,34 @@ export async function GET() {
       return new Date(t.sla_due_date) < now
     }).length || 0
 
-  // Get engineer workload
-  const { data: engineers } = await supabase.from("users").select("id, full_name").eq("role", "engineer")
+  const { data: assignees } = await supabase
+    .from("users")
+    .select("id, full_name, role")
+    .in("role", ["engineer", "supervisor", "admin"])
 
-  const engineerWorkload = await Promise.all(
-    (engineers || []).map(async (engineer) => {
-      const { data: engineerTickets } = await supabase
+  const assigneeWorkload = await Promise.all(
+    (assignees || []).map(async (assignee) => {
+      const { data: assigneeTickets } = await supabase
         .from("tickets")
         .select("status, created_at, resolved_at")
-        .eq("assigned_to", engineer.id)
+        .eq("assigned_to", assignee.id)
 
-      const activeTickets = engineerTickets?.filter((t) => t.status !== "resolved" && t.status !== "closed").length || 0
+      const activeTickets = assigneeTickets?.filter((t) => t.status !== "resolved" && t.status !== "closed").length || 0
 
-      const resolvedByEngineer = engineerTickets?.filter((t) => t.resolved_at && t.created_at) || []
+      const resolvedByAssignee = assigneeTickets?.filter((t) => t.resolved_at && t.created_at) || []
       const avgTime =
-        resolvedByEngineer.length > 0
-          ? resolvedByEngineer.reduce((sum, t) => {
+        resolvedByAssignee.length > 0
+          ? resolvedByAssignee.reduce((sum, t) => {
               const created = new Date(t.created_at).getTime()
               const resolved = new Date(t.resolved_at!).getTime()
               return sum + (resolved - created) / (1000 * 60 * 60)
-            }, 0) / resolvedByEngineer.length
+            }, 0) / resolvedByAssignee.length
           : 0
 
       return {
-        engineerId: engineer.id,
-        engineerName: engineer.full_name,
+        assigneeId: assignee.id,
+        assigneeName: assignee.full_name,
+        assigneeRole: assignee.role,
         activeTickets,
         avgResolutionTime: Math.round(avgTime * 10) / 10,
       }
@@ -88,7 +91,7 @@ export async function GET() {
     slaBreached,
     criticalTickets: tickets.filter((t) => t.priority === "critical").length,
     highTickets: tickets.filter((t) => t.priority === "high").length,
-    engineerWorkload,
+    assigneeWorkload,
   }
 
   return NextResponse.json(stats)
