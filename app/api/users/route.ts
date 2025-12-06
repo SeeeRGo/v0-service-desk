@@ -9,15 +9,17 @@ export async function GET(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
+    console.log("[v0] Users API - Current user:", user?.id)
+
     if (!user) {
+      console.log("[v0] Users API - No authenticated user")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const searchParams = request.nextUrl.searchParams
     const roleFilter = searchParams.get("role")
 
-    // Get current user's role
-    const { data: currentUserData } = await supabase.from("users").select("role").eq("id", user.id).single()
+    console.log("[v0] Users API - Role filter:", roleFilter)
 
     let query = supabase
       .from("users")
@@ -25,23 +27,23 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false })
 
     if (roleFilter) {
+      console.log("[v0] Users API - Applying role filter:", roleFilter)
       query = query.eq("role", roleFilter)
-    } else {
-      if (currentUserData?.role !== "admin" && currentUserData?.role !== "supervisor") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-      }
     }
 
     const { data: users, error } = await query
 
+    console.log("[v0] Users API - Query result:", { count: users?.length, error: error?.message })
+    console.log("[v0] Users API - Users data:", users)
+
     if (error) {
-      console.error("Error fetching users:", error)
+      console.error("[v0] Users API - Error fetching users:", error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     return NextResponse.json({ users: users || [] })
   } catch (error) {
-    console.error("Error in users API:", error)
+    console.error("[v0] Users API - Catch error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
