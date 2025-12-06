@@ -4,12 +4,40 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { X } from "lucide-react"
+import { useState, useEffect } from "react"
 
-export default function TicketFilters() {
+interface TicketFiltersProps {
+  onFiltersChange: (filters: {
+    status: string
+    priority: string
+    category: string
+    assignedTo: string
+  }) => void
+  categories: Array<{ id: string; name: string }>
+  assignees: Array<{ id: string; full_name: string }>
+}
+
+export default function TicketFilters({ onFiltersChange, categories, assignees }: TicketFiltersProps) {
+  const [status, setStatus] = useState("all")
+  const [priority, setPriority] = useState("all")
+  const [category, setCategory] = useState("all")
+  const [assignedTo, setAssignedTo] = useState("all")
+
+  useEffect(() => {
+    onFiltersChange({ status, priority, category, assignedTo })
+  }, [status, priority, category, assignedTo, onFiltersChange])
+
+  const handleReset = () => {
+    setStatus("all")
+    setPriority("all")
+    setCategory("all")
+    setAssignedTo("all")
+  }
+
   return (
     <Card className="p-4">
       <div className="flex flex-wrap items-center gap-4">
-        <Select defaultValue="all">
+        <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Статус" />
           </SelectTrigger>
@@ -21,10 +49,11 @@ export default function TicketFilters() {
             <SelectItem value="escalated">Эскалировано</SelectItem>
             <SelectItem value="resolved">Разрешен</SelectItem>
             <SelectItem value="closed">Закрыто</SelectItem>
+            <SelectItem value="waiting">Ожидание</SelectItem>
           </SelectContent>
         </Select>
 
-        <Select defaultValue="all">
+        <Select value={priority} onValueChange={setPriority}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Приоритет" />
           </SelectTrigger>
@@ -37,31 +66,35 @@ export default function TicketFilters() {
           </SelectContent>
         </Select>
 
-        <Select defaultValue="all">
+        <Select value={category} onValueChange={setCategory}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Категория" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Все категории</SelectItem>
-            <SelectItem value="network">Сетевые технологии</SelectItem>
-            <SelectItem value="hardware">Оборудование</SelectItem>
-            <SelectItem value="software">ПО</SelectItem>
-            <SelectItem value="email">Email</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={cat.id}>
+                {cat.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
-        <Select defaultValue="all">
+        <Select value={assignedTo} onValueChange={setAssignedTo}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Исполнитель" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Все исполнители</SelectItem>
-            <SelectItem value="1">Иван Петров</SelectItem>
-            <SelectItem value="2">Мария Сидорова</SelectItem>
+            {assignees.map((assignee) => (
+              <SelectItem key={assignee.id} value={assignee.id}>
+                {assignee.full_name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={handleReset}>
           <X className="w-4 h-4 mr-2" />
           Сбросить фильтры
         </Button>

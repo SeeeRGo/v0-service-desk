@@ -27,9 +27,16 @@ const priorityColors: Record<TicketPriority, string> = {
   critical: "bg-red-500/10 text-red-500",
 }
 
+interface TicketListProps {
+  filters?: {
+    status: string
+    priority: string
+    category: string
+    assignedTo: string
+  }
+}
 
-
-export default function TicketList() {
+export default function TicketList({ filters }: TicketListProps) {
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -37,7 +44,26 @@ export default function TicketList() {
   useEffect(() => {
     async function loadTickets() {
       try {
-        const response = await fetch("/api/tickets")
+        setLoading(true)
+
+        const params = new URLSearchParams()
+        if (filters?.status && filters.status !== "all") {
+          params.append("status", filters.status)
+        }
+        if (filters?.priority && filters.priority !== "all") {
+          params.append("priority", filters.priority)
+        }
+        if (filters?.category && filters.category !== "all") {
+          params.append("category", filters.category)
+        }
+        if (filters?.assignedTo && filters.assignedTo !== "all") {
+          params.append("assignedTo", filters.assignedTo)
+        }
+
+        const queryString = params.toString()
+        const url = queryString ? `/api/tickets?${queryString}` : "/api/tickets"
+
+        const response = await fetch(url)
 
         if (!response.ok) {
           throw new Error("Failed to load tickets")
@@ -53,7 +79,7 @@ export default function TicketList() {
     }
 
     loadTickets()
-  }, [])
+  }, [filters]) // Re-fetch when filters change
 
   if (loading) {
     return (
@@ -119,7 +145,7 @@ export default function TicketList() {
                 </td>
                 <td className="p-4">
                   <div className="text-sm">
-                    {/* <div className="font-medium">{ticket.client?.full_name || "Неизвестно"}</div> */}
+                    <div className="font-medium">{(ticket as any).client?.full_name || "Неизвестно"}</div>
                   </div>
                 </td>
                 <td className="p-4">
@@ -133,10 +159,10 @@ export default function TicketList() {
                   </Badge>
                 </td>
                 <td className="p-4 text-sm">
-                  {/* {ticket.assigned?.full_name || <span className="text-muted-foreground">Не назначен</span>} */}
+                  {(ticket as any).assigned?.full_name || <span className="text-muted-foreground">Не назначен</span>}
                 </td>
                 <td className="p-4 text-sm text-muted-foreground">
-                  {/* {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true, locale: ru })} */}
+                  {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true, locale: ru })}
                 </td>
               </tr>
             ))}

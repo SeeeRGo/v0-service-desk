@@ -14,6 +14,7 @@ export async function GET(request: Request) {
 
   const status = searchParams.get("status")
   const priority = searchParams.get("priority")
+  const category = searchParams.get("category") // Added category filter
   const assignedTo = searchParams.get("assignedTo")
 
   let query = supabase
@@ -32,12 +33,14 @@ export async function GET(request: Request) {
   if (priority) {
     query = query.eq("priority", priority)
   }
+  if (category) {
+    query = query.eq("category_id", category)
+  }
   if (assignedTo) {
     query = query.eq("assigned_to", assignedTo)
   }
 
   const { data, error } = await query
-  console.log('data', data);
 
   if (error) {
     console.error("[v0] Tickets query error:", error)
@@ -60,7 +63,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json()
-  
+
   const ticketData = {
     type: body.ticket_type || body.type,
     title: body.title,
