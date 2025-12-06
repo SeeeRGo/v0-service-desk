@@ -26,8 +26,9 @@ export async function GET(request: NextRequest) {
       .select("id, full_name, email, role, company_id, created_at")
       .order("created_at", { ascending: false })
 
-    if (roleFilter) {
-      console.log("[v0] Users API - Applying role filter:", roleFilter)
+    if (roleFilter === "engineer") {
+      query = query.in("role", ["engineer", "supervisor", "admin"])
+    } else if (roleFilter) {
       query = query.eq("role", roleFilter)
     }
 
