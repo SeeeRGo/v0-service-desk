@@ -32,10 +32,13 @@ export default function TicketsPage() {
 
         if (usersRes.ok) {
           const userData = await usersRes.json()
+          console.log("[v0] Loaded assignees:", userData)
           setAssignees(userData.users || [])
+        } else {
+          console.error("[v0] Failed to load users:", await usersRes.text())
         }
       } catch (error) {
-        console.error("Failed to load filter data:", error)
+        console.error("[v0] Failed to load filter data:", error)
       }
     }
 
