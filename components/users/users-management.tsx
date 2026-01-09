@@ -47,7 +47,7 @@ export function UsersManagement() {
         throw new Error("Failed to load users")
       }
       const data = await response.json()
-      setUsers(data)
+      setUsers(data.users || [])
     } catch (error) {
       toast({
         title: "Ошибка",
