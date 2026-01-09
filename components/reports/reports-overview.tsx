@@ -25,7 +25,7 @@ interface IncidentStats {
   statusCounts: { [key: string]: number }
   priorityCounts: { [key: string]: number }
   typeCounts: { [key: string]: number }
-  categoryCounts: { [key: string]: number } // Added categoryCounts
+  categories: { name: string; count: number }[] // Changed from categoryCounts object
   avgResolutionTime: number
   dailyCounts: { [key: string]: number }
   totalTickets: number
@@ -119,12 +119,7 @@ export default function ReportsOverview() {
         }))
     : []
 
-  const categoryChartData = incidentStats
-    ? Object.entries(incidentStats.categoryCounts).map(([key, value]) => ({
-        name: key,
-        value: value as number,
-      }))
-    : []
+  const categoryChartData = incidentStats?.categories || []
 
   if (loading) {
     return <div className="text-center py-8">Загрузка статистики...</div>
@@ -259,7 +254,7 @@ export default function ReportsOverview() {
               <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="value" fill="#06b6d4" name="Количество" />
+              <Bar dataKey="count" fill="#06b6d4" name="Количество" />
             </BarChart>
           </ResponsiveContainer>
         </Card>
