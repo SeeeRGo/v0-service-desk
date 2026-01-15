@@ -54,7 +54,7 @@ export default function TicketDetails({ ticket }: TicketDetailsProps) {
         const response = await fetch("/api/users")
         if (response.ok) {
           const usersData = await response.json()
-          setUsers(usersData)
+          setUsers(usersData.users || [])
         }
       } catch (error) {
         console.error("Failed to fetch users:", error)
