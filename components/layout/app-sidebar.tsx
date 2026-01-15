@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Ticket, BarChart3, BookOpen, Settings, Users, LogOut } from "lucide-react"
+import { LayoutDashboard, Ticket, BarChart3, BookOpen, Settings, Users, LogOut, Columns3 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ import {
 const navigation = [
   { name: "Панель управления", href: "/dashboard", icon: LayoutDashboard },
   { name: "Заявки", href: "/tickets", icon: Ticket },
+  { name: "Канбан доска", href: "/kanban", icon: Columns3 },
   { name: "Отчеты", href: "/reports", icon: BarChart3 },
   { name: "База знаний", href: "/knowledge-base", icon: BookOpen },
   { name: "Пользователи", href: "/users", icon: Users },
